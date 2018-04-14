@@ -4,6 +4,7 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app._static_folder = '/Users/macdowell/Desktop/CCR_Website/download_models'
@@ -34,6 +35,15 @@ def download_models():
 @app.route('/upload')
 def upload():
 	return render_template('upload.html')
+
+@app.route('/api/upload', methods=['POST', 'GET'])
+def upload_file():
+    if request.method == 'POST':
+        f = request.files['file']
+        basepath = os.path.dirname(__file__)  # 当前文件所在路径
+        upload_path = os.path.join(basepath, 'files',secure_filename(f.filename))  #注意：没有的文件夹一定要先创建，不然会提示没有该路径
+        f.save(upload_path)
+    return render_template('upload_success.html')
 
 @app.route('/rank')
 def rank():
