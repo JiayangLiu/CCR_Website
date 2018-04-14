@@ -22,32 +22,16 @@ mysql = MySQL(app)
 def index():
 	return render_template('home.html')
 
-@app.route('/download')
-def download():
-	return render_template('download.html')
-
-@app.route('/download_models')
-def download_models():
-	response = make_response(send_file("download_models/CCR_Model_7.zip"))
-	response.headers["Content-Disposition"] = "attachment; filename=download_models/CCR_Model_7.zip;"
-	return response
-
-@app.route('/upload')
-def upload():
-	return render_template('upload.html')
-
-@app.route('/upload_codes', methods=['POST', 'GET'])
-def upload_file():
-    if request.method == 'POST':
-        f = request.files['file']
-        basepath = os.path.dirname(__file__)
-        upload_path = os.path.join(basepath, 'files',secure_filename(f.filename))
-        f.save(upload_path)
-        flash('You have successfully upload your codes', 'success')
-    return redirect(url_for('dashboard'))
-@app.route('/rank')
-def rank():
-	return render_template('rank.html')
+# Check if user logged in (use Flask Decorator)
+def is_logged_in(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            return f(*args, **kwargs)
+        else:
+            flash('Unauthorized, Please login', 'danger')
+            return redirect(url_for('login'))
+    return wrap
 
 class RegisterForm(Form):
 	name = StringField('Name', [validators.Length(min=1, max=50)])
@@ -112,17 +96,6 @@ def login():
             return render_template('login.html', error=error)
     return render_template('login.html')
 
-# Check if user logged in (use Flask Decorator)
-def is_logged_in(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if 'logged_in' in session:
-            return f(*args, **kwargs)
-        else:
-            flash('Unauthorized, Please login', 'danger')
-            return redirect(url_for('login'))
-    return wrap
-
 # Logout
 @app.route('/logout')
 @is_logged_in
@@ -137,6 +110,42 @@ def logout():
 def dashboard():
 
     return render_template('dashboard.html')
+
+# ==========================================================
+
+@app.route('/download')
+def download():
+	return render_template('download.html')
+
+@app.route('/download_models')
+@is_logged_in
+def download_models():
+	response = make_response(send_file("download_models/CCR_Model_7.zip"))
+	response.headers["Content-Disposition"] = "attachment; filename=download_models/CCR_Model_7.zip;"
+	return response
+
+# ==========================================================
+
+@app.route('/upload')
+def upload():
+	return render_template('upload.html')
+
+@app.route('/upload_codes', methods=['POST', 'GET'])
+@is_logged_in
+def upload_file():
+    if request.method == 'POST':
+        f = request.files['file']
+        basepath = os.path.dirname(__file__)
+        upload_path = os.path.join(basepath, 'files',secure_filename(f.filename))
+        f.save(upload_path)
+        flash('You have successfully upload your codes', 'success')
+    return redirect(url_for('dashboard'))
+
+# ==========================================================
+
+@app.route('/rank')
+def rank():
+	return render_template('rank.html')
 
 
 if __name__ == '__main__':
