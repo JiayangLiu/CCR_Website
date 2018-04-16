@@ -1,31 +1,35 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-  <h1>Dashboard <small> Welcome {{session.username}}</small></h1>
-  <a class="btn btn-success" href="/upload">上传代码</a>
+  <h1>个人中心  <small> Welcome {{session.username}}</small></h1>
+  <hr>
+  <h3>上传记录</h3>
   <hr>
   <table class="table table-striped">
     <tr>
       <th>编号</th>
+      <th>文件名称</th>
       <th>上传日期</th>
-      <th>运行时间</th>
+      <th>运行时间(s)</th>
       <th>正确率</th>
       <th></th>
       <th></th>
     </tr>
     {% for code in codes %}
       <tr>
-        <td>{{article.id}}</td>
-        <td>{{article.title}}</td>
-        <td>{{article.author}}</td>
-        <td>{{article.create_date}}</td>
-        <td><a href="edit_article/{{article.id}}" class="btn btn-default pull-right">Edit</a></td>
-        <td>
-          <form action="{{url_for('delete_article', id=article.id)}}" method="post">
-            <input type="hidden" name="_method" value="DELETE">
-            <input type="submit" value="Delete" class="btn btn-danger">
-          </form>
-        </td>
+        <td>{{loop.index}}</td>
+        <td>{{code.filename}}</td>
+        <td>{{code.upload_date}}</td>
+        {% if code.run_time == None %}
+          <td>未审阅</td>
+        {% else %}
+          <td>{{code.run_time}}</td>
+        {% endif %}
+        {% if code.accuracy == None %}
+          <td>未审阅</td>
+        {% else %}
+          <td>{{code.accuracy}}</td>
+        {% endif %}
       </tr>
     {% endfor %}
   </table>

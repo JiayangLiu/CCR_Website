@@ -111,8 +111,21 @@ def logout():
 @app.route('/dashboard')
 @is_logged_in
 def dashboard():
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Execute query,get upload codes records
+    user_id = session['user_id']
+    result = cur.execute("SELECT * FROM codes WHERE user_id = %s",str(user_id))
+    # result = cur.execute("SELECT * FROM codes")
+    codes = cur.fetchall()
 
-    return render_template('dashboard.html')
+    if result>0:
+        return render_template('dashboard.html',codes=codes)
+    else:
+        msg='No Codes Found'
+        return render_template('dashboard.html',msg=msg)
+    # Close connection
+    cur.close()
 
 # ==========================================================
 

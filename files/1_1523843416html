@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>个人中心  <small> Welcome {{session.username}}</small></h1>
+  <hr>
+  <h3>上传记录</h3>
+  <hr>
+  <table class="table table-striped">
+    <tr>
+      <th>编号</th>
+      <th>文件名称</th>
+      <th>上传日期</th>
+      <th>运行时间(s)</th>
+      <th>正确率</th>
+      <th></th>
+      <th></th>
+    </tr>
+    {% for code in codes %}
+      <tr>
+        <td>{{loop.index}}</td>
+        <td>{{code.filename}}</td>
+        <td>{{code.upload_date}}</td>
+        {% if code.run_time == None %}
+          <td>未审阅</td>
+        {% else %}
+          <td>{{code.run_time}}</td>
+        {% endif %}
+        {% if code.accuracy == None %}
+          <td>未审阅</td>
+        {% else %}
+          <td>{{code.accuracy}}</td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock %}
