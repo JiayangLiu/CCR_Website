@@ -4,6 +4,7 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 import os
+import time
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -79,11 +80,13 @@ def login():
             # Get stored hash
             data = cur.fetchone()
             password = data['password']
+            user_id = data['id']
             # Compare Passwords
             if sha256_crypt.verify(password_candidate, password):
                 # Passed
                 session['logged_in'] = True
                 session['username'] = username
+                session['user_id'] = user_id
                 flash('You are now logged in', 'success')
                 return redirect(url_for('dashboard'))
             else:
@@ -134,10 +137,23 @@ def upload():
 @is_logged_in
 def upload_file():
     if request.method == 'POST':
+        # 1 upload file into server directory
+        if request.files['file'] == None:
+            error = 'No file selected when upload'
+            return render_template('upload.html', error=error)
         f = request.files['file']
         basepath = os.path.dirname(__file__)
-        upload_path = os.path.join(basepath, 'files',secure_filename(f.filename))
+        current_time = str(time.time())
+        new_file_name = str(session['user_id']) + '_' + current_time[0:current_time.rfind('.',1)] + secure_filename(f.filename)[-4:]
+        upload_path = os.path.join(basepath, 'files', new_file_name)
         f.save(upload_path)
+
+        # 2 record the file in batabase
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO codes(filename, path, user_id) VALUES(%s, %s, %s)", (f.filename, upload_path, session['user_id']))
+        mysql.connection.commit()
+        cur.close()
+
         flash('You have successfully upload your codes', 'success')
     return redirect(url_for('dashboard'))
 
