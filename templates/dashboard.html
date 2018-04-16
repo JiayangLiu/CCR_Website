@@ -20,12 +20,12 @@
         <td>{{loop.index}}</td>
         <td>{{code.filename}}</td>
         <td>{{code.upload_date}}</td>
-        {% if code.run_time == None %}
+        {% if code.run_time == 0.0 %}
           <td>未审阅</td>
         {% else %}
           <td>{{code.run_time}}</td>
         {% endif %}
-        {% if code.accuracy == None %}
+        {% if code.accuracy == 0.0 %}
           <td>未审阅</td>
         {% else %}
           <td>{{code.accuracy}}</td>

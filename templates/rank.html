@@ -1,10 +1,26 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-  <div class="jumbotron text-center">
-    <h1>Rank</h1>
-    <p>
-      This is the rank page.
-    </p>
-  </div>
+  <h1>世界排名</h1>
+  <hr>
+  <table class="table table-striped">
+    <tr>
+      <th>排名</th>
+      <th>作者</th>
+      <th>正确率</th>
+      <th>运行时间(s)</th>
+      <th>上传日期</th>
+      <th></th>
+      <th></th>
+    </tr>
+    {% for code in ranked_codes %}
+      <tr>
+        <td>{{loop.index}}</td>
+        <td>{{code.username}}</td>
+        <td>{{code.accuracy}}</td>
+        <td>{{code.run_time}}</td>
+        <td>{{code.upload_date}}</td>
+      </tr>
+    {% endfor %}
+  </table>
 {% endblock %}

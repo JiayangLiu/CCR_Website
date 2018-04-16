@@ -4,7 +4,6 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 import os
-import time
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -80,15 +79,15 @@ def login():
             # Get stored hash
             data = cur.fetchone()
             password = data['password']
-            user_id = data['id']
-            # Compare Passwords
+			# user_id = data['id']
+			# Compare Passwords
             if sha256_crypt.verify(password_candidate, password):
                 # Passed
-                session['logged_in'] = True
-                session['username'] = username
-                session['user_id'] = user_id
-                flash('You are now logged in', 'success')
-                return redirect(url_for('dashboard'))
+				session['logged_in'] = True
+				session['username'] = username
+				# session['user_id'] = user_id
+				flash('You are now logged in', 'success')
+				return redirect(url_for('dashboard'))
             else:
                 error = 'Invalid login'
                 return render_template('login.html', error=error)
@@ -111,21 +110,8 @@ def logout():
 @app.route('/dashboard')
 @is_logged_in
 def dashboard():
-    # Create cursor
-    cur = mysql.connection.cursor()
-    # Execute query,get upload codes records
-    user_id = session['user_id']
-    result = cur.execute("SELECT * FROM codes WHERE user_id = %s ORDER BY upload_date DESC",str(user_id))
-    # result = cur.execute("SELECT * FROM codes")
-    codes = cur.fetchall()
 
-    if result>0:
-        return render_template('dashboard.html',codes=codes)
-    else:
-        msg='No Codes Found'
-        return render_template('dashboard.html',msg=msg)
-    # Close connection
-    cur.close()
+    return render_template('dashboard.html')
 
 # ==========================================================
 
@@ -148,36 +134,24 @@ def upload():
 
 @app.route('/upload_codes', methods=['POST', 'GET'])
 @is_logged_in
-def upload_codes():
-    if request.method == 'POST':
-        # 1 upload file into server directory
-        f = request.files['file']
-        if f.filename == '':
-            error = 'No file selected when upload'
-            return render_template('upload.html', error=error)
-        basepath = os.path.dirname(__file__)
-        current_time = str(time.time())
-        new_file_name = str(session['user_id']) + '_' + current_time[0:current_time.rfind('.',1)] + secure_filename(f.filename)[-4:]
-        upload_path = os.path.join(basepath, 'files', new_file_name)
-        f.save(upload_path)
-
-        # 2 record the file in batabase
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO codes(filename, path, user_id) VALUES(%s, %s, %s)", (f.filename, upload_path, session['user_id']))
-        mysql.connection.commit()
-        cur.close()
-
-        flash('You have successfully upload your codes', 'success')
+def upload_file():
+	if request.method == 'POST':
+		# if request.files['file'] == NULL:
+		# 	error = 'Code file not selected'
+		# 	return render_template('upload.html', error=error)
+		else:
+	        f = request.files['file']
+	        basepath = os.path.dirname(__file__)
+	        upload_path = os.path.join(basepath, 'files',secure_filename(f.filename))
+	        f.save(upload_path)
+	        flash('You have successfully upload your codes', 'success')
     return redirect(url_for('dashboard'))
 
 # ==========================================================
 
 @app.route('/rank')
 def rank():
-    cur = mysql.connection.cursor()
-    result = cur.execute("SELECT codes.id,codes.filename,codes.accuracy,codes.run_time,users.username,codes.upload_date FROM codes,users WHERE codes.accuracy!=0 AND codes.user_id = users.id ORDER BY codes.accuracy DESC")
-    ranked_codes = cur.fetchall()
-    return render_template('rank.html', ranked_codes = ranked_codes)
+	return render_template('rank.html')
 
 
 if __name__ == '__main__':
